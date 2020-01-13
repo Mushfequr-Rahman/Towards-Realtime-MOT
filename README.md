@@ -52,3 +52,12 @@ Adding custom datsets is quite simple, all you need to do is to organize your an
 
 ## Acknowledgement
 A large portion of code is borrowed from [ultralytics/yolov3](https://github.com/ultralytics/yolov3) and [longcw/MOTDT](https://github.com/longcw/MOTDT), many thanks to their wonderful work!
+
+
+# Our Changes: 
+### Mohammad Mushfequr Rahman
+I have included changes to run the code for our purposes to run the code please type:
+
+    python3 demo.py --input-video <video_name> --weights <path_to_weights> --output-root <output-directory> 
+
+
