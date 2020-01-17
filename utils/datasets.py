@@ -16,12 +16,18 @@ from utils.utils import xyxy2xywh
 class LoadImages:  # for inference
     def __init__(self, path, img_size=(1088, 608)):
         if os.path.isdir(path):
+
             image_format = ['.jpg', '.jpeg', '.png', '.tif']
+
             self.files = sorted(glob.glob('%s/*.*' % path))
+            print(sorted(glob.glob('%s/*.*' % path)))
             self.files = list(filter(lambda x: os.path.splitext(x)[1].lower() in image_format, self.files))
         elif os.path.isfile(path):
             self.files = [path]
+        else:
+            print("What is supposed to happen")
 
+        #print("Files ", self.files)
         self.nF = len(self.files)  # number of image files
         self.width = img_size[0]
         self.height = img_size[1]
@@ -149,6 +155,10 @@ class LoadImagesAndLabels:  # for training
     def get_data(self, img_path, label_path):
         height = self.height
         width = self.width
+        """
+        Added to os,join for our purposes.
+        """
+        img_path = os.path.join("data/",img_path)
         img = cv2.imread(img_path)  # BGR
         if img is None:
             raise ValueError('File corrupt {}'.format(img_path))
@@ -340,13 +350,17 @@ def collate_fn(batch):
 
 class JointDataset(LoadImagesAndLabels):  # for training
     def __init__(self, root, paths, img_size=(1088,608), augment=False, transforms=None):
-        
+
+        print(paths)
+
+
         dataset_names = paths.keys()
         self.img_files = OrderedDict()
         self.label_files = OrderedDict()
         self.tid_num = OrderedDict()
         self.tid_start_index = OrderedDict()
         for ds, path in paths.items():
+            #print("Working directory: ", os.listdir(path))
             with open(path, 'r') as file:
                 self.img_files[ds] = file.readlines()
                 self.img_files[ds] = [osp.join(root, x.strip()) for x in self.img_files[ds]]
@@ -355,9 +369,18 @@ class JointDataset(LoadImagesAndLabels):  # for training
             self.label_files[ds] = [x.replace('images', 'labels_with_ids').replace('.png', '.txt').replace('.jpg', '.txt')
                                 for x in self.img_files[ds]]
 
+
+
+
+
         for ds, label_paths in self.label_files.items():
             max_index = -1
             for lp in label_paths:
+                """
+                Section Added to modify the data loader: 
+                """
+                lp = os.path.join("data",lp)
+                #print("LP:" ,lp)
                 lb = np.loadtxt(lp)
                 if len(lb) < 1:
                     continue

@@ -4,6 +4,8 @@ data/mot17
 data/mot19
 tmp/
 external/
+.idea/
+runs/
 =======
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -13,7 +15,7 @@ __pycache__/
 # C extensions
 *.so
 !utils/*.so
-
+data/
 # Distribution / packaging
 .Python
 build/

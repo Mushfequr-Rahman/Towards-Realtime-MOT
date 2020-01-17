@@ -1,13 +1,14 @@
 import argparse
 import json
 import time
-
-import test  
+import test
+from _datetime import date
 from models import *
 from utils.datasets import JointDataset, collate_fn
 from utils.utils import *
 from utils.log import logger
 from torchvision.transforms import transforms as T
+from torch.utils.tensorboard import SummaryWriter
 
 
 def train(
@@ -20,6 +21,7 @@ def train(
         accumulated_batches=1,
         freeze_backbone=False,
         opt=None,
+        writer=None
 ):
     weights = 'weights' 
     mkdir_if_missing(weights)
@@ -142,6 +144,11 @@ def train(
                 rloss['nT'], time.time() - t0)
             t0 = time.time()
             if i % opt.print_interval == 0:
+                if writer is not None:
+                    writer.add_scalar("Mean Loss over epochs",loss,epoch)
+                    writer.add_scaler("Mean Box",rloss['box'],epoch)
+                    writer.add_scaler("Confidence",rloss['conf'],epoch)
+
                 logger.info(s)
         
         # Save latest checkpoint
@@ -156,6 +163,10 @@ def train(
             with torch.no_grad():
                 mAP, R, P = test.test(cfg, data_cfg, weights=latest, batch_size=batch_size, img_size=img_size, print_interval=40, nID=dataset.nID)
                 test.test_emb(cfg, data_cfg, weights=latest, batch_size=batch_size, img_size=img_size, print_interval=40, nID=dataset.nID)
+            writer.add_scalar("Test mAP",mAP,epoch)
+            writer.add_scalar("Test Recall:",R,epoch)
+            writer.add_scalar("Test Precision:",P,epoch)
+
 
 
         # Call scheduler.step() after opimizer.step() with pytorch > 1.1.0 
@@ -178,6 +189,13 @@ if __name__ == '__main__':
 
     init_seeds()
 
+    """
+    Passing the summary writer as an argument to train to record the values. 
+    
+    """
+    current_date = date.today()
+    d1 = current_date.strftime("%d/%m/%Y")
+    writer = SummaryWriter(('runs/%s_%d_%s' %("PWC",1,d1)))
     train(
         opt.cfg,
         opt.data_cfg,
@@ -187,4 +205,5 @@ if __name__ == '__main__':
         batch_size=opt.batch_size,
         accumulated_batches=opt.accumulated_batches,
         opt=opt,
+        writer=writer
     )
