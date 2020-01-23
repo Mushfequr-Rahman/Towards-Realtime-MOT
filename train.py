@@ -40,9 +40,10 @@ def train(
     transforms = T.Compose([T.ToTensor()])
     # Get dataloader
     dataset = JointDataset(dataset_root, trainset_paths, img_size, augment=True, transforms=transforms)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                                             num_workers=8, pin_memory=True, drop_last=True, collate_fn=collate_fn) 
-    
+    print("Data Set: ",dataset)
+
+    #dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,num_workers=8, pin_memory=True, drop_last=True, collate_fn=collate_fn)
+    dataloader = torch.utils.data.DataLoader(dataset,batch_size=batch_size,collate_fn=collate_fn)
     # Initialize model
     model = Darknet(cfg, img_size, dataset.nID)
 
@@ -108,6 +109,11 @@ def train(
         rloss = defaultdict(float)  # running loss
         optimizer.zero_grad()
         for i, (imgs, targets, _, _, targets_len) in enumerate(dataloader):
+            #print("Image Shape: ",imgs.shape)
+            #print("targets Shape: ", targets.shape)
+
+
+
             if sum([len(x) for x in targets]) < 1:  # if no targets continue
                 continue
 
@@ -146,8 +152,8 @@ def train(
             if i % opt.print_interval == 0:
                 if writer is not None:
                     writer.add_scalar("Mean Loss over epochs",loss,epoch)
-                    writer.add_scaler("Mean Box",rloss['box'],epoch)
-                    writer.add_scaler("Confidence",rloss['conf'],epoch)
+                    writer.add_scalar("Mean Box",rloss['box'],epoch)
+                    writer.add_scalar("Confidence",rloss['conf'],epoch)
 
                 logger.info(s)
         

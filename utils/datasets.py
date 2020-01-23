@@ -57,7 +57,7 @@ class LoadImages:  # for inference
         img = np.ascontiguousarray(img, dtype=np.float32)
         img /= 255.0
 
-        # cv2.imwrite(img_path + '.letterbox.jpg', 255 * img.transpose((1, 2, 0))[:, :, ::-1])  # save letterbox image
+        cv2.imwrite(img_path + '.letterbox.jpg', 255 * img.transpose((1, 2, 0))[:, :, ::-1])  # save letterbox image
         return img_path, img, img0
     
     def __getitem__(self, idx):
@@ -188,7 +188,12 @@ class LoadImagesAndLabels:  # for training
         img, ratio, padw, padh = letterbox(img, height=height, width=width)
 
         # Load labels
+        """
+        Join label path for our purposes
+        """
+        label_path = os.path.join('data/',label_path)
         if os.path.isfile(label_path):
+            #print("Label_path: ", label_path)
             labels0 = np.loadtxt(label_path, dtype=np.float32).reshape(-1, 6)
 
             # Normalized xywh to pixel xyxy format
@@ -205,17 +210,23 @@ class LoadImagesAndLabels:  # for training
             img, labels, M = random_affine(img, labels, degrees=(-5, 5), translate=(0.10, 0.10), scale=(0.50, 1.20))
 
     
-        plotFlag = False
+        plotFlag = True
         if plotFlag:
+
             import matplotlib
             matplotlib.use('Agg')
             import matplotlib.pyplot as plt
+
+
             plt.figure(figsize=(50, 50)) 
             plt.imshow(img[:, :, ::-1])
             plt.plot(labels[:, [1, 3, 3, 1, 1]].T, labels[:, [2, 2, 4, 4, 2]].T, '.-')
             plt.axis('off')
             plt.savefig('test.jpg')
             time.sleep(10)
+
+
+
 
         nL = len(labels)
         if nL > 0:
